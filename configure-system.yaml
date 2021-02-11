@@ -1,0 +1,14 @@
+---
+- name: Configure HAProxy Load Balancer in GCP
+  hosts: all
+  vars:
+    reboot_after_kernel_update: true
+
+  tasks:
+    - name: Do a basic system update
+      include_role:
+        - name: baseLinuxUpdate
+
+    - name: Deploy HAProxy
+      include_role:
+        - name: haproxy-lb
