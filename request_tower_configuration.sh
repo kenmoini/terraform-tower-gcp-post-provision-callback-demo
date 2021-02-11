@@ -28,7 +28,7 @@ EOF
 INSECURE=""
 
 # Parse arguments
-while getopts “hks:c:t:s:e:” OPTION
+while getopts “hks:c:t:i:s:e:” OPTION
 do
   case ${OPTION} in
     h)
@@ -71,13 +71,6 @@ test -z ${INVENTORY_ID} && fatal 1 "Missing required -i argument"
 
 ##############################################################################
 # Run Inventory Sync
-
-# Generate curl --data parameter
-if [ -n "${EXTRA_VARS}" ]; then
-  CURL_DATA="{\"host_config_key\": \"${HOST_CFG_KEY}\", \"extra_vars\": \"${EXTRA_VARS}\"}"
-else
-  CURL_DATA="{\"host_config_key\": \"${HOST_CFG_KEY}\"}"
-fi
 
 # Success on any 2xx status received, failure on only 404 status received, retry any other status every min for up to 10 min
 RETRY_ATTEMPTS=10
