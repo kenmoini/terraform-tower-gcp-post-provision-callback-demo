@@ -40,6 +40,6 @@ resource "google_compute_instance" "vm_instance" {
     }
   }
   #metadata_startup_script = format("useradd kemo && mkdir -p /home/kemo/.ssh && usermod -aG sudo kemo && echo \"%s\" > /home/kemo/.ssh/authorized_keys && curl --data \"host_config_key=%s\" %s -k", file("~/.ssh/id_rsa.pub"), var.host_config_key, var.tower_endpoint)
-  metadata_startup_script = format("useradd kemo && mkdir -p /home/kemo/.ssh && usermod -aG sudo kemo && echo \"%s\" > /home/kemo/.ssh/authorized_keys && curl -sSL -O /opt/request_tower_configuration.sh https://raw.githubusercontent.com/kenmoini/terraform-tower-gcp-post-provision-callback-demo/main/configure-system.yaml && chmod +x /opt/request_tower_configuration.sh && /opt/request_tower_configuration.sh -k -c %s -s %s -t %d -i %d", file("~/.ssh/id_rsa.pub"), var.host_config_key, var.tower_server, var.tower_job_id, var.tower_inventory_id)
+  metadata_startup_script = format("useradd kemo && mkdir -p /home/kemo/.ssh && usermod -aG sudo kemo && echo \"%s\" > /home/kemo/.ssh/authorized_keys && curl -sSL -O /opt/request_tower_configuration.sh https://raw.githubusercontent.com/kenmoini/terraform-tower-gcp-post-provision-callback-demo/main/request_tower_configuration.sh && chmod +x /opt/request_tower_configuration.sh && /opt/request_tower_configuration.sh -k -c %s -s %s -t %d -i %d", file("~/.ssh/id_rsa.pub"), var.host_config_key, var.tower_server, var.tower_job_id, var.tower_inventory_id)
 
 }
