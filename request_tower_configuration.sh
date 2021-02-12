@@ -19,7 +19,6 @@ OPTIONS:
    -k      Allow insecure SSL connections and transfers
    -c      Host config key (required)
    -t      Job template ID (required)
-   -i      Inventory ID (required)
    -e      Extra variables
 EOF
 }
@@ -28,7 +27,7 @@ EOF
 INSECURE=""
 
 # Parse arguments
-while getopts “hks:c:t:i:s:e:” OPTION
+while getopts “hks:c:t:s:e:” OPTION
 do
   case ${OPTION} in
     h)
@@ -47,9 +46,6 @@ do
     t)
       TEMPLATE_ID=${OPTARG}
       ;;
-    i)
-      INVENTORY_ID=${OPTARG}
-      ;;
     e)
       EXTRA_VARS=${OPTARG}
       ;;
@@ -67,36 +63,6 @@ test -z ${TOWER_SERVER} && fatal 1 "Missing required -s argument"
 [[ "${TOWER_SERVER}" =~ ^https?:// ]] || fatal 1 "Tower server must begin with http:// or https://"
 test -z ${HOST_CFG_KEY} && fatal 1 "Missing required -c argument"
 test -z ${TEMPLATE_ID} && fatal 1 "Missing required -t argument"
-test -z ${INVENTORY_ID} && fatal 1 "Missing required -i argument"
-
-##############################################################################
-# Run Inventory Sync
-
-# Success on any 2xx status received, failure on only 404 status received, retry any other status every min for up to 10 min
-RETRY_ATTEMPTS=10
-ATTEMPT=0
-while [[ $ATTEMPT -lt $RETRY_ATTEMPTS ]]
-do
-  set -o pipefail
-  HTTP_STATUS=$(curl ${INSECURE} -s -i -X POST -H 'Content-Type:application/json' ${TOWER_SERVER}/api/v2/inventories/${INVENTORY_ID}/update_inventory_sources/ 2>&1 | head -n1 | awk '{print $2}')
-  CURL_RC=$?
-  if [ ${CURL_RC} -ne 0 ]; then
-    fatal ${CURL_RC} "curl exited with ${CURL_RC}, halting."
-  fi
-
-  # Extract http status code
-  if [[ ${HTTP_STATUS} =~ ^2[0-9]+$ ]]; then
-    echo "Success: ${HTTP_STATUS} received."
-    break
-  elif [[ ${HTTP_STATUS} =~ ^404$ ]]; then
-    fatal 1 "Failed: ${HTTP_STATUS} received, encountered problem, halting."
-  else
-    ATTEMPT=$((ATTEMPT + 1))
-    echo "Failed: ${HTTP_STATUS} received, executing retry #${ATTEMPT} in 1 minute."
-    sleep 60
-  fi
-done
-
 
 ##############################################################################
 # Run Post Provisioning Configuration
@@ -114,7 +80,8 @@ ATTEMPT=0
 while [[ $ATTEMPT -lt $RETRY_ATTEMPTS ]]
 do
   set -o pipefail
-  HTTP_STATUS=$(curl ${INSECURE} -s -i -X POST -H 'Content-Type:application/json' --data "$CURL_DATA" ${TOWER_SERVER}/api/v2/job_templates/${TEMPLATE
+  CURL_ENS=$(curl ${INSECURE} -s -i -X POST -H 'Content-Type:application/json' --data "$CURL_DATA" ${TOWER_SERVER}/api/v2/job_templates/${TEMPLATE_ID}/callback/ 2>&1)
+  HTTP_STATUS=$(echo $CURL_ENS | head -n1 | awk '{print $2}')
   CURL_RC=$?
   if [ ${CURL_RC} -ne 0 ]; then
     fatal ${CURL_RC} "curl exited with ${CURL_RC}, halting."
@@ -129,6 +96,7 @@ do
   else
     ATTEMPT=$((ATTEMPT + 1))
     echo "Failed: ${HTTP_STATUS} received, executing retry #${ATTEMPT} in 1 minute."
+    echo $CURL_ENS
     sleep 60
   fi
 done
