@@ -1,3 +1,0 @@
----
-# defaults file for haproxy-lb
-enable_machine_config_server: false
