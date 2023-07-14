@@ -2,6 +2,42 @@
 
 This repo is a simple demo of how you can use Terraform to create your infrastructure to Google Cloud and utilize Ansible Tower for the provisioning and configuration.
 
+## Prerequisites
+
+### Install Terraform
+
+Read more here: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
+
+```bash
+# RHEL Systems
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+sudo yum -y install terraform
+```
+
+### Install Google Cloud CLI
+
+Read more here: https://cloud.google.com/sdk/docs/install
+
+```bash
+# RHEL Systems
+sudo tee -a /etc/yum.repos.d/google-cloud-sdk.repo << EOM
+[google-cloud-cli]
+name=Google Cloud CLI
+baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el8-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOM
+
+# Install the package
+sudo dnf install google-cloud-cli
+
+# Log in
+gcloud init
+```
+
 ## Usage
 
 ### Tower Setup
@@ -9,7 +45,7 @@ This repo is a simple demo of how you can use Terraform to create your infrastru
 1. Deploy Ansible Tower - Set up RBAC and other basics
 2. Add this Git repo as a ***Project*** in Ansible Tower
 3. Create a Google Cloud type ***Credential*** in Tower so it can connect to GCP and sync the inventory - this Service Account can have Read-only access.  Create a JSON type Key for the Service Account.
-4. Create a Machine type ***Credential*** in Tower that will match the the user credentials that have access to GCE VMs
+4. Create a Machine type ***Credential*** in Tower that will match the the user credentials that have access to GCE VMs, set the user to `nuser`
 5. In Tower, create an ***Inventory*** for your GCE environment and have it use GCE as a ***Source***
    
     Ensure that the checkboxes for **Overwrite** and **Update on Launch** are checked in the Inventory Source so that it is updated as soon as the Provisioning Job Template is called

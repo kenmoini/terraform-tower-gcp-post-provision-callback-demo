@@ -1,23 +1,30 @@
-provider "google" {
-  project = "rh-sat-demo"
-  region  = "us-central1"
-  zone    = "us-central1-c"
+resource "google_compute_network" "vpc_network" {
+  name = "default-tf-network"
 }
-variable "host_config_key" {
-  default = "1234567-4ef1-41a8-9454-2c57564e0f76"
-  type    = string
+
+resource "google_compute_firewall" "tf_firewall" {
+  name    = "tf-firewall"
+  network = google_compute_network.vpc_network.name
+
+  depends_on = [google_compute_network.vpc_network]
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22", "80", "443", "9090"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
 }
-variable "tower_server" {
-  default = "https://twr.example.com"
-  type    = string
-}
-variable "tower_job_id" {
-  default = 123
-  type    = number
-}
+
 resource "google_compute_instance" "vm_instance" {
+  depends_on = [google_compute_firewall.tf_firewall]
+
   name         = "terraform-rhel-instance"
-  machine_type = "f1-micro"
+  machine_type = "e2-standard-2"
 
   boot_disk {
     initialize_params {
@@ -27,7 +34,7 @@ resource "google_compute_instance" "vm_instance" {
 
   network_interface {
     # A default network is created for all GCP projects
-    network = "default"
+    network = "default-tf-network"
     access_config {
     }
   }
