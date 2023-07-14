@@ -9,6 +9,6 @@
       include_role:
         name: baseLinuxUpdate
 
-    - name: Deploy HAProxy
-      include_role:
-        name: haproxy-lb
+    #- name: Deploy HAProxy
+    #  include_role:
+    #    name: haproxy-lb
